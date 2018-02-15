@@ -19,6 +19,7 @@ export default class SortableList extends Component {
     order: PropTypes.arrayOf(PropTypes.any),
     style: ViewPropTypes.style,
     contentContainerStyle: ViewPropTypes.style,
+    pagingEnabled: PropTypes.bool,
     sortingEnabled: PropTypes.bool,
     scrollEnabled: PropTypes.bool,
     horizontal: PropTypes.bool,
@@ -33,13 +34,15 @@ export default class SortableList extends Component {
     onChangeOrder: PropTypes.func,
     onActivateRow: PropTypes.func,
     onReleaseRow: PropTypes.func,
+    onScroll: PropTypes.func,
   };
 
   static defaultProps = {
     sortingEnabled: true,
     scrollEnabled: true,
     autoscrollAreaSize: 60,
-    manuallyActivateRows: false
+    manuallyActivateRows: false,
+    onScroll: () => {}
   }
 
   /**
@@ -173,7 +176,7 @@ export default class SortableList extends Component {
   }
 
   render() {
-    const {contentContainerStyle, horizontal, style} = this.props;
+    const {contentContainerStyle, horizontal, pagingEnabled, style} = this.props;
     const {animated, contentHeight, contentWidth, scrollEnabled} = this.state;
     const containerStyle = StyleSheet.flatten([style, {opacity: Number(animated)}])
     const innerContainerStyle = [
@@ -197,6 +200,9 @@ export default class SortableList extends Component {
           contentContainerStyle={contentContainerStyle}
           scrollEventThrottle={2}
           scrollEnabled={scrollEnabled}
+          pagingEnabled={pagingEnabled}
+          showsHorizontalScrollIndicator={!pagingEnabled}
+          showsVerticalScrollIndicator={!pagingEnabled}
           onScroll={this._onScroll}>
           <View style={innerContainerStyle}>
             {this._renderRows()}
@@ -579,8 +585,9 @@ export default class SortableList extends Component {
     }
   };
 
-  _onScroll = ({nativeEvent: {contentOffset}}) => {
-      this._contentOffset = contentOffset;
+  _onScroll = (e) => {
+      this._contentOffset = e.nativeEvent.contentOffset;
+      this.props.onScroll(e)
   };
 
   _onRefContainer = (component) => {
